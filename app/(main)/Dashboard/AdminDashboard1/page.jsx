@@ -1,4 +1,6 @@
 "use client";
+export const dynamic = "force-dynamic";
+
 // app/(dashboard)/owner/page.jsx
 
 import React, { useState, useEffect } from "react";
