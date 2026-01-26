@@ -456,7 +456,31 @@ export default function LoanPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <Input label="Guarantor Name" value={guarantorName} onChange={(e) => setGuarantorName(e.target.value)} />
                                 <Input label="ID Card Number" value={guarantorIdCard} onChange={(e) => setGuarantorIdCard(e.target.value)} />
-                                <Input label="Relationship" value={guarantorRelationship} onChange={(e) => setGuarantorRelationship(e.target.value)} />
+                               {/* Updated Relationship Select */}
+        <div className="flex flex-col space-y-1">
+            <label className="text-sm font-medium text-gray-700">Relationship</label>
+            <select 
+                value={guarantorRelationship} 
+                onChange={(e) => setGuarantorRelationship(e.target.value)} 
+                className="p-2 border rounded-md bg-white text-black h-[42px]"
+            >
+                <option value="">Select Relationship</option>
+                <option value="Spouse">Spouse</option>
+                <option value="Parent">Parent</option>
+                <option value="Sibling">Sibling</option>
+                <option value="Business Partner">Business Partner</option>
+                <option value="Friend">Friend</option>
+                <option value="Daughter">Daughter</option>
+                <option value="Son">Son</option>
+                <option value="Brother">Brother</option>
+                <option value="Employer">Employer</option>
+                <option value="Sister">Sister</option>
+                <option value="Wife">Wife</option>
+                <option value="Husband">Husband</option>
+                <option value="Religious Leader">Religious Leader</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Input label="Guarantor Tel" value={guarantorTel} onChange={(e) => setGuarantorTel(e.target.value)} />

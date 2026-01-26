@@ -15,7 +15,7 @@ import {
     collection,
     addDoc,
     updateDoc,
-    deleteDoc, 
+    deleteDoc,
     doc,
     onSnapshot,
     query,
@@ -64,6 +64,23 @@ const Spinner = () => (
         <FaSpinner className="animate-spin text-indigo-600 text-4xl" role="status" aria-label="Loading" />
     </div>
 );
+
+
+const SIERRA_LEONE_DISTRICTS = [
+    "Bo", "Bombali", "Bonthe", "Falaba", "Freetown (Western Area Urban)",
+    "Kailahun", "Kambia", "Karene", "Kenema", "Koinadugu", "Kono",
+    "Moyamba", "Port Loko", "Pujehun", "Tonkolili", "Western Area Rural"
+];
+
+const RELATIONSHIPS = [
+    "Father", "Mother", "Brother", "Sister", "Son", "Daughter",
+    "Spouse", "Uncle", "Aunt", "Cousin", "Grandparent", "Guardian"
+];
+
+const TOWNS = [
+    "Freetown", "Bo", "Kenema", "Makeni", "Koidu", "Lunsar",
+    "Port Loko", "Waterloo", "Kabala", "Segbwema", "Magburaka"
+];
 
 /** --- MAIN COMPONENT --- **/
 
@@ -348,24 +365,24 @@ export default function ClientDetails({ branch }) {
     );
 
     const handleDelete = async (id) => {
-    // 1. Ask for confirmation so users don't delete by accident
-    if (window.confirm("Are you sure you want to delete this client? This action cannot be undone.")) {
-        try {
-            // 2. Reference the specific document by ID and delete it
-            await deleteDoc(doc(db, "clients", id));
-            
-            // 3. If you were editing this client, clear the form
-            if (editingClientId === id) {
-                clearForm();
+        // 1. Ask for confirmation so users don't delete by accident
+        if (window.confirm("Are you sure you want to delete this client? This action cannot be undone.")) {
+            try {
+                // 2. Reference the specific document by ID and delete it
+                await deleteDoc(doc(db, "clients", id));
+
+                // 3. If you were editing this client, clear the form
+                if (editingClientId === id) {
+                    clearForm();
+                }
+
+                alert("Client deleted successfully.");
+            } catch (err) {
+                console.error("Error deleting document: ", err);
+                alert("Failed to delete client. Please try again.");
             }
-            
-            alert("Client deleted successfully.");
-        } catch (err) {
-            console.error("Error deleting document: ", err);
-            alert("Failed to delete client. Please try again.");
         }
-    }
-};
+    };
 
     if (error) return <div className="p-4 text-red-500 font-bold bg-red-50 rounded-lg">{error}</div>;
 
@@ -414,8 +431,33 @@ export default function ClientDetails({ branch }) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input label="District" value={district} onChange={(e) => setDistrict(e.target.value)} />
-                        <Input label="Town" value={town} onChange={(e) => setTown(e.target.value)} />
+                        {/* District Dropdown */}
+                        <div className="flex flex-col space-y-1">
+                            <label className="text-sm font-medium text-gray-700">District</label>
+                            <select
+                                value={district}
+                                onChange={(e) => setDistrict(e.target.value)}
+                                className="p-2 border border-gray-300 rounded-md bg-white text-black focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <option value="">Select District</option>
+                                {SIERRA_LEONE_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Town Dropdown */}
+                        <div className="flex flex-col space-y-1">
+                            <label className="text-sm font-medium text-gray-700">Town</label>
+                            <select
+                                value={town}
+                                onChange={(e) => setTown(e.target.value)}
+                                className="p-2 border border-gray-300 rounded-md bg-white text-black focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <option value="">Select Town</option>
+                                {TOWNS.map(t => <option key={t} value={t}>{t}</option>)}
+                                <option value="Other">Other...</option>
+                            </select>
+                        </div>
+
                         <Input label="Address" value={address} onChange={(e) => setAddress(e.target.value)} icon={FaHome} />
                         <div className="flex flex-col space-y-1">
                             <label className="text-sm font-medium text-gray-700">Marital Status</label>
@@ -424,6 +466,7 @@ export default function ClientDetails({ branch }) {
                                 <option value="married">Married</option>
                                 <option value="divorced">Divorced</option>
                                 <option value="widow">Widow</option>
+                                <option value="single">Single</option>
                             </select>
                         </div>
                     </div>
@@ -439,7 +482,17 @@ export default function ClientDetails({ branch }) {
                     <h3 className="text-md font-bold text-indigo-700 flex items-center gap-2 border-b border-gray-100 pb-2 pt-4"><FaUsers /> Next of Kin</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Input label="Next of Kin Name" value={nokName} onChange={(e) => setNokName(e.target.value)} />
-                        <Input label="Relationship" value={nokRelationship} onChange={(e) => setNokRelationship(e.target.value)} placeholder="e.g. Brother, Wife" />
+                        <div className="flex flex-col space-y-1">
+                            <label className="text-sm font-medium text-gray-700">Relationship</label>
+                            <select
+                                value={nokRelationship}
+                                onChange={(e) => setNokRelationship(e.target.value)}
+                                className="p-2 border border-gray-300 rounded-md bg-white text-black focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <option value="">Select Relationship</option>
+                                {RELATIONSHIPS.map(r => <option key={r} value={r}>{r}</option>)}
+                            </select>
+                        </div>
                         <Input label="Kin Phone No." value={nokPhone} onChange={(e) => setNokPhone(e.target.value)} icon={FaPhone} />
                     </div>
 
