@@ -2,19 +2,20 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { 
-    FaUpload, FaUser, FaPencilAlt, FaTrashAlt, FaCalendarAlt, 
-    FaMapMarkerAlt, FaPhone, FaHome, FaBirthdayCake, 
-    FaBriefcase, FaSpinner, FaIdCard, FaStore, FaMoneyBillWave, FaUsers 
+import {
+    FaUpload, FaUser, FaPencilAlt, FaTrashAlt, FaCalendarAlt,
+    FaMapMarkerAlt, FaPhone, FaHome, FaBirthdayCake,
+    FaBriefcase, FaSpinner, FaIdCard, FaStore, FaMoneyBillWave, FaUsers
 } from 'react-icons/fa';
 
-import { db } from '@/app/lib/firebase'; 
+import { db } from '@/app/lib/firebase';
 import { cloudinaryConfig } from "@/app/lib/cloudinaryUpload";
 
 import {
     collection,
     addDoc,
     updateDoc,
+    deleteDoc, 
     doc,
     onSnapshot,
     query,
@@ -101,7 +102,7 @@ export default function ClientDetails({ branch }) {
     const [businessRegDate, setBusinessRegDate] = useState('');
     const [loanPurpose, setLoanPurpose] = useState('');
     const [capitalSource, setCapitalSource] = useState('');
-    
+
     // UI & Status States
     const [isOnline, setIsOnline] = useState(true);
     const [branchId, setBranchId] = useState('');
@@ -112,7 +113,7 @@ export default function ClientDetails({ branch }) {
     const [imageUploading, setImageUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [loading, setLoading] = useState(true);
-    
+
     // Data States
     const [clientList, setClientList] = useState([]);
     const [staffMembers, setStaffMembers] = useState([]);
@@ -137,40 +138,40 @@ export default function ClientDetails({ branch }) {
     }, []);
 
     // 2. SESSION DATA
-   // 2. SESSION DATA (Robust Version)
-useEffect(() => {
-    if (typeof window !== 'undefined') {
-        const keys = Object.keys(sessionStorage);
-        let foundData = null;
+    // 2. SESSION DATA (Robust Version)
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const keys = Object.keys(sessionStorage);
+            let foundData = null;
 
-        // Scan all keys to find the one containing the auth/company data
-        keys.forEach(key => {
-            const val = sessionStorage.getItem(key);
-            if (val && val.includes("companyShortCode")) {
-                try {
-                    foundData = JSON.parse(val);
-                } catch (e) { console.error("Session parse error", e); }
-            }
-        });
+            // Scan all keys to find the one containing the auth/company data
+            keys.forEach(key => {
+                const val = sessionStorage.getItem(key);
+                if (val && val.includes("companyShortCode")) {
+                    try {
+                        foundData = JSON.parse(val);
+                    } catch (e) { console.error("Session parse error", e); }
+                }
+            });
 
-        if (foundData) {
-            if (foundData.branchId) setBranchId(foundData.branchId);
-            if (foundData.companyShortCode) setCompanyShortCode(foundData.companyShortCode);
-            setError(null);
-        } else {
-            // Fallback to direct keys
-            const directBranch = sessionStorage.getItem('branchId');
-            const directCode = sessionStorage.getItem('companyShortCode');
-            if (directBranch) {
-                setBranchId(directBranch);
-                setCompanyShortCode(directCode || '');
+            if (foundData) {
+                if (foundData.branchId) setBranchId(foundData.branchId);
+                if (foundData.companyShortCode) setCompanyShortCode(foundData.companyShortCode);
+                setError(null);
             } else {
-                setError("Session missing. Please log in again.");
-                setLoading(false);
+                // Fallback to direct keys
+                const directBranch = sessionStorage.getItem('branchId');
+                const directCode = sessionStorage.getItem('companyShortCode');
+                if (directBranch) {
+                    setBranchId(directBranch);
+                    setCompanyShortCode(directCode || '');
+                } else {
+                    setError("Session missing. Please log in again.");
+                    setLoading(false);
+                }
             }
         }
-    }
-}, [branch]);
+    }, [branch]);
 
     // 3. REAL-TIME FETCHING
     useEffect(() => {
@@ -199,27 +200,27 @@ useEffect(() => {
     }, [branchId]);
 
 
-// AUTO-ID GENERATION
-// 5. AUTO-ID GENERATION (Regex Version)
-useEffect(() => {
-    if (!editingClientId) {
-        // Ensure we have a code, use "PMCD" as fallback
-        const code = (companyShortCode || "PMCD").toLowerCase();
-        
-        const latestClientNumber = clientList.reduce((max, client) => {
-            // Matches: [code]-sd-[numbers] (case insensitive)
-            const regex = new RegExp(`^${code}-sd-(\\d+)$`, 'i');
-            const numMatch = (client.clientId || "").match(regex);
-            const num = numMatch ? parseInt(numMatch[1], 10) : 0;
-            return num > max ? num : max;
-        }, 0);
+    // AUTO-ID GENERATION
+    // 5. AUTO-ID GENERATION (Regex Version)
+    useEffect(() => {
+        if (!editingClientId) {
+            // Ensure we have a code, use "PMCD" as fallback
+            const code = (companyShortCode || "PMCD").toLowerCase();
 
-        const newNumber = latestClientNumber + 1;
-        // Format: CODE-SD-01
-        const formattedId = `${code.toUpperCase()}-SD-${String(newNumber).padStart(2, '0')}`;
-        setClientId(formattedId);
-    }
-}, [clientList, editingClientId, companyShortCode]);
+            const latestClientNumber = clientList.reduce((max, client) => {
+                // Matches: [code]-sd-[numbers] (case insensitive)
+                const regex = new RegExp(`^${code}-cd-(\\d+)$`, 'i');
+                const numMatch = (client.clientId || "").match(regex);
+                const num = numMatch ? parseInt(numMatch[1], 10) : 0;
+                return num > max ? num : max;
+            }, 0);
+
+            const newNumber = latestClientNumber + 1;
+            // Format: CODE-SD-01
+            const formattedId = `${code.toUpperCase()}-CD-${String(newNumber).padStart(2, '0')}`;
+            setClientId(formattedId);
+        }
+    }, [clientList, editingClientId, companyShortCode]);
 
     // 6. AGE CALCULATION
     useEffect(() => {
@@ -264,7 +265,7 @@ useEffect(() => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!fullName || !staffName || !branchId) return alert("Fill required fields (Name, Staff)");
-        
+
         setIsSaving(true);
         const clientData = {
             clientId, registrationDate, staffName, branchId, fullName,
@@ -274,7 +275,7 @@ useEffect(() => {
             spouseNationalId: maritalStatus === 'married' ? spouseNationalId : '',
             nokName, nokRelationship, nokPhone,
             businessName, businessNature, businessLocation, avgSales, avgExpenses,
-            isBusinessRegistered, 
+            isBusinessRegistered,
             businessRegDate: isBusinessRegistered === 'yes' ? businessRegDate : '',
             loanPurpose, capitalSource,
             updatedAt: new Date().toISOString(),
@@ -331,7 +332,7 @@ useEffect(() => {
 
     const clearForm = () => {
         setFullName(''); setGender(''); setDateOfBirth('');
-        setTelephone(''); setAddress(''); setPhotoUrl(''); 
+        setTelephone(''); setAddress(''); setPhotoUrl('');
         setImagePreviewUrl(''); setEditingClientId(null);
         setNationalId(''); setDistrict(''); setTown('');
         setMaritalStatus(''); setSpouseName(''); setSpouseNationalId('');
@@ -341,10 +342,30 @@ useEffect(() => {
         setBusinessRegDate(''); setLoanPurpose(''); setCapitalSource('');
     };
 
-    const filteredClients = clientList.filter(c => 
-        c.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const filteredClients = clientList.filter(c =>
+        c.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.clientId?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleDelete = async (id) => {
+    // 1. Ask for confirmation so users don't delete by accident
+    if (window.confirm("Are you sure you want to delete this client? This action cannot be undone.")) {
+        try {
+            // 2. Reference the specific document by ID and delete it
+            await deleteDoc(doc(db, "clients", id));
+            
+            // 3. If you were editing this client, clear the form
+            if (editingClientId === id) {
+                clearForm();
+            }
+            
+            alert("Client deleted successfully.");
+        } catch (err) {
+            console.error("Error deleting document: ", err);
+            alert("Failed to delete client. Please try again.");
+        }
+    }
+};
 
     if (error) return <div className="p-4 text-red-500 font-bold bg-red-50 rounded-lg">{error}</div>;
 
@@ -352,9 +373,9 @@ useEffect(() => {
         <div className="max-w-6xl mx-auto p-4 space-y-8 text-black">
             {/* SEARCH BAR */}
             <div className="bg-white p-4 rounded-xl shadow-sm border">
-                <Input 
-                    placeholder="Search by name or ID..." 
-                    value={searchTerm} 
+                <Input
+                    placeholder="Search by name or ID..."
+                    value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     label="Quick Search"
                 />
@@ -520,6 +541,9 @@ useEffect(() => {
                                 </div>
                                 <button onClick={() => handleEdit(client)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
                                     <FaPencilAlt size={14} />
+                                </button>
+                                <button onClick={() => handleDelete(client.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                                    <FaTrashAlt size={14} />
                                 </button>
                             </div>
                         ))}
