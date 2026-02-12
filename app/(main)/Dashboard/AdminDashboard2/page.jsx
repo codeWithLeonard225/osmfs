@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import StaffForm from "../../Forms/StaffForm/page";
 import ClientDetails from "../../Forms/ClientForm/page";
 import Principal from "../../Load/Principal/page";
+import Savings from "../../Load/Savings/page";
+import Withdrawal from "../../Load/Withdrawal/page";
 import GroupStaffReport from "../../Reports/StaffLoan/page";
 import ClientLoanOutstanding from "../../Reports/ClientLoanOutstanding/page";
 
@@ -37,7 +39,8 @@ const NAV_ITEMS = [
     icon: <MdAssignmentTurnedIn />,
     children: [
       { key: "Principal", label: "Principal" },
-      { key: "staffApprovals", label: "Staff Approvals" },
+      { key: "Savings", label: "Savings" },
+      { key: "Withdrawal", label: "Withdrawal" },
     ],
   },
 
@@ -186,6 +189,10 @@ useEffect(() => {
         return <ClientDetails/>;
       case "Principal":
         return <Principal/>;
+      case "Savings":
+        return <Savings/>;
+      case "Withdrawal":
+        return <Withdrawal/>;
       case "GroupStaffReport":
         return <GroupStaffReport/>;
       case "ClientLoanOutstanding":

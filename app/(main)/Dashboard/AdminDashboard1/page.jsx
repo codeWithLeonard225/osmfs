@@ -10,8 +10,13 @@ import { useRouter } from "next/navigation";
 import StaffForm from "../../Forms/StaffForm/page";
 import ClientDetails from "../../Forms/ClientForm/page";
 import Principal from "../../Load/Principal/page";
+import Savings from "../../Load/Savings/page";
+import Withdrawal from "../../Load/Withdrawal/page";
+import Payments from "../../Payments/Disbosment/page";
+import FieldCollection from "../../Reports/FieldCollection/page";
 import GroupStaffReport from "../../Reports/StaffLoan/page";
 import ClientLoanOutstanding from "../../Reports/ClientLoanOutstanding/page";
+import AdminLoansPage from "../../Admin/AdminLoansPage/page";
 
 
 
@@ -37,9 +42,13 @@ const NAV_ITEMS = [
     icon: <MdAssignmentTurnedIn />,
     children: [
       { key: "Principal", label: "Principal" },
-      { key: "staffApprovals", label: "Staff Approvals" },
+      // { key: "Savings", label: "Savings" },
+      { key: "Withdrawal", label: "Withdrawal" },
     ],
   },
+
+    { key: "Payments", label: "Payments", icon: <MdDashboard /> },
+    // { key: "AdminLoansPage", label: "AdminLoansPage", icon: <MdDashboard /> },
 
 
 
@@ -51,6 +60,7 @@ const NAV_ITEMS = [
       { key: "GroupStaffReport", label: "StaffLoan " },
       { key: "ClientLoanOutstanding", label: "Client Loan Outstanding" },
       { key: "loanHistory", label: "Loan History" },
+      { key: "FieldCollection", label: "Field-Collection" },
     ],
   },
 
@@ -186,6 +196,16 @@ useEffect(() => {
         return <ClientDetails/>;
       case "Principal":
         return <Principal/>;
+      case "Savings":
+        return <Savings/>;
+      case "Withdrawal":
+        return <Withdrawal/>;
+      case "Payments":
+        return <Payments/>;
+      case "AdminLoansPage":
+        return <AdminLoansPage/>;
+      case "FieldCollection":
+        return <FieldCollection/>;
       case "GroupStaffReport":
         return <GroupStaffReport/>;
       case "ClientLoanOutstanding":
