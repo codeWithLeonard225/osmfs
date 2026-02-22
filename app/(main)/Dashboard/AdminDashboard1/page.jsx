@@ -48,7 +48,7 @@ const NAV_ITEMS = [
   },
 
     { key: "Payments", label: "Payments", icon: <MdDashboard /> },
-    // { key: "AdminLoansPage", label: "AdminLoansPage", icon: <MdDashboard /> },
+    { key: "AdminLoansPage", label: "AdminLoansPage", icon: <MdDashboard /> },
 
 
 

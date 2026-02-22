@@ -66,7 +66,7 @@ export default function LoanPage() {
     const [cashSecurity, setCashSecurity] = useState('');
     const [principal, setPrincipal] = useState('');
     const [interestRate, setInterestRate] = useState('');
-    const [paymentWeeks, setPaymentWeeks] = useState('');
+    const [paymentWeeks, setPaymentWeeks] = useState('23');
     const [disbursementDate, setDisbursementDate] = useState(new Date().toISOString().slice(0, 10));
     const [repaymentStartDate, setRepaymentStartDate] = useState('');
 
@@ -208,14 +208,39 @@ export default function LoanPage() {
         return () => unsubscribe();
     }, [clientId, currentBranchId]);
 
-    // 7. Auto-populate by Loan Type
-    useEffect(() => {
-        if (editingLoanId) return;
-        if (loanType === 'Small' || loanType === 'Medium') {
-            setInterestRate('20');
-            setPaymentWeeks('23');
-        }
-    }, [loanType, editingLoanId]);
+
+
+    // 7. Dynamic Interest Calculation Based on Principal
+useEffect(() => {
+
+    const amount = parseFloat(principal);
+
+    if (!amount || amount <= 0) {
+        setInterestRate('');
+        return;
+    }
+
+    let rate = 0;
+
+    if (amount <= 2500) {
+        rate = 20.75;
+    } 
+    else if (amount >= 3000 && amount <= 3500) {
+        rate = 20.37;
+    } 
+    else if (amount >= 4000 && amount <= 4500) {
+        rate = 25;
+    } 
+    else if (amount >= 5000 && amount <= 5500) {
+        rate = 24.2;
+    } 
+    else {
+        rate = 0;
+    }
+
+    setInterestRate(rate.toString());
+
+}, [principal, loanType, loanOutcome]);
 
     // --- HANDLERS ---
 
@@ -421,8 +446,8 @@ export default function LoanPage() {
                                 <label className="text-sm font-medium text-gray-700">Loan Type</label>
                                 <select value={loanType} onChange={(e) => setLoanType(e.target.value)} className="p-2 border rounded-md bg-white text-black">
                                     <option value="">Select Type</option>
-                                    <option value="Small">Small (20%)</option>
-                                    <option value="Medium">Medium (20%)</option>
+                                    <option value="Small">Small</option>
+                                    <option value="Medium">Medium</option>
                                     <option value="Others">Others</option>
                                 </select>
                             </div>
@@ -432,7 +457,13 @@ export default function LoanPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <Input label="Principal (SLE)" type="number" value={principal} onChange={(e) => setPrincipal(e.target.value)} />
-                            <Input label="Interest Rate (%)" type="number" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} />
+                          <Input 
+    label="Interest Rate (%)" 
+    type="number" 
+    value={interestRate} 
+    readOnly 
+/>
+
                             <Input label="Duration (Weeks)" type="number" value={paymentWeeks} onChange={(e) => setPaymentWeeks(e.target.value)} />
                             <Input label="Cash Security" value={cashSecurity} onChange={(e) => setCashSecurity(e.target.value)} />
                         </div>
