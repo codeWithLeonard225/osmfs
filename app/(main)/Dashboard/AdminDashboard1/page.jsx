@@ -15,6 +15,8 @@ import Withdrawal from "../../Load/Withdrawal/page";
 import Payments from "../../Payments/Disbosment/page";
 import FieldCollection from "../../Reports/FieldCollection/page";
 import GroupStaffReport from "../../Reports/StaffLoan/page";
+import AdminCashbookSummary from "../../CashbookSummary/AdminCashbookSummary/page";
+import AdminCashbookReportSummary from "../../CashbookSummary/AdminCashbookReportSummary/page";
 import ClientLoanOutstanding from "../../Reports/ClientLoanOutstanding/page";
 import AdminLoansPage from "../../Admin/AdminLoansPage/page";
 
@@ -48,9 +50,19 @@ const NAV_ITEMS = [
   },
 
     { key: "Payments", label: "Payments", icon: <MdDashboard /> },
-    { key: "AdminLoansPage", label: "AdminLoansPage", icon: <MdDashboard /> },
 
-
+     {
+    key: "cashbook",
+    label: "Cashbook",
+    icon: <MdAssignmentTurnedIn />,
+    children: [
+      { key: "AdminCashbookSummary", label: "CashbookSummary" },
+      // { key: "Savings", label: "Savings" },
+      { key: "AdminCashbookReportSummary", label: "CashbookReportSummary" },
+    ],
+  },
+    // { key: "AdminLoansPage", label: "AdminLoansPage", icon: <MdDashboard /> },
+  
 
   {
     key: "reports",
@@ -204,6 +216,10 @@ useEffect(() => {
         return <Payments/>;
       case "AdminLoansPage":
         return <AdminLoansPage/>;
+      case "AdminCashbookSummary":
+        return <AdminCashbookSummary/>;
+      case "AdminCashbookReportSummary":
+        return <AdminCashbookReportSummary/>;
       case "FieldCollection":
         return <FieldCollection/>;
       case "GroupStaffReport":
