@@ -61,7 +61,7 @@ const NAV_ITEMS = [
       { key: "AdminCashbookReportSummary", label: "CashbookReportSummary" },
     ],
   },
-    { key: "AdminLoansPage", label: "AdminLoansPage", icon: <MdDashboard /> },
+    // { key: "AdminLoansPage", label: "AdminLoansPage", icon: <MdDashboard /> },
   
 
   {
