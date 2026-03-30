@@ -1,24 +1,24 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-// app/(dashboard)/owner/page.jsx
+// app/(main)/Dashboard/AdminLedger/page.jsx
 
 import React, { useState, useEffect } from "react";
 import { MdDashboard, MdAttachMoney, MdAssignmentTurnedIn, MdLibraryBooks, MdMenuBook, MdKeyboardArrowDown } from "react-icons/md";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
-import StaffForm from "../../Forms/StaffForm/page";
-import ClientDetails from "../../Forms/ClientForm/page";
-import Principal from "../../Load/Principal/page";
-import Savings from "../../Load/Savings/page";
-import Withdrawal from "../../Load/Withdrawal/page";
-import Payments from "../../Payments/Disbosment/page";
-import FieldCollection from "../../Reports/FieldCollection/page";
-import GroupStaffReport from "../../Reports/StaffLoan/page";
-import AdminCashbookSummary from "../../CashbookSummary/AdminCashbookSummary/page";
-import AdminCashbookReportSummary from "../../CashbookSummary/AdminCashbookReportSummary/page";
-import ClientLoanOutstanding from "../../Reports/ClientLoanOutstanding/page";
-import AdminLoansPage from "../../Admin/AdminLoansPage/page";
+import DailyLedgerSummary from "../../Reports/DailyledgerSummary/page";
+import DailyLedger from "../../Reports/Dailyledger/page";
+import LoanSummaryReport from "../../Reports/LoanSummaryReport/page";
+import PeriodicCollection from "../../Reports/PeriodicCollection/page";
+import LoanPaymentReport from "../../Reports/LoanPaymentReport/page";
+import DailyPaymentReport from "../../Reports/DailyPaymentReport/page";
+import MasterTransactionLedger from "../../Reports/MasterTransactionLedger/page";
+import GroupCollectionSummary from "../../Reports/GroupCollectionSummary/page";
+import PaymentTracking from "../../Reports/PaymentTracking/page";
+import StaffGroupLedger from "../../Reports/StaffGroupLedger/page";
+import ClientPortfolioSummary from "../../Reports/ClientPortfolioSummary/page";
+import StaffPerformanceReport from "../../Reports/StaffPerformanceReport/page";
 
 
 
@@ -28,56 +28,35 @@ const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: <MdDashboard /> },
 
   {
-    key: "staffReg",
-    label: "Registerations",
+    key: "GeneralLedger",
+    label: "Ledger",
     icon: <MdDashboard />,
     children: [
-      { key: "staffform", label: "Register Staff" },
-      { key: "clientform", label: "Register Client " },
-      { key: "staffRoles", label: "Staff Roles" },
+      { key: "DailyCashCollection", label: "Daily CashCollection" },
+      { key: "PeriodicCollection", label: "Periodic Collection" },
+      { key: "Ledgersummary", label: "Ledger Summary" },
     ],
   },
-
-  {
-    key: "loan",
-    label: "Loan",
-    icon: <MdAssignmentTurnedIn />,
-    children: [
-      { key: "Principal", label: "Principal" },
-      // { key: "Savings", label: "Savings" },
-      { key: "Withdrawal", label: "Withdrawal" },
-    ],
-  },
-
-    { key: "Payments", label: "Payments", icon: <MdDashboard /> },
-
-     {
-    key: "cashbook",
-    label: "Cashbook",
-    icon: <MdAssignmentTurnedIn />,
-    children: [
-      { key: "AdminCashbookSummary", label: "CashbookSummary" },
-      // { key: "Savings", label: "Savings" },
-      { key: "AdminCashbookReportSummary", label: "CashbookReportSummary" },
-    ],
-  },
-    { key: "AdminLoansPage", label: "AdminLoansPage", icon: <MdDashboard /> },
-  
 
   {
     key: "reports",
     label: "Reports",
     icon: <MdLibraryBooks />,
     children: [
-      { key: "GroupStaffReport", label: "StaffLoan " },
-      { key: "ClientLoanOutstanding", label: "Client Loan Outstanding" },
-      { key: "loanHistory", label: "Loan History" },
-      { key: "FieldCollection", label: "Field-Collection" },
+      { key: "LoanSummary", label: "Lona Summary " },
+      { key: "LoanPaymentReport", label: "Loan Payment Report" },
+      { key: "DailyPaymentReport", label: "Daily Payment Report" },
+      { key: "MasterTransactionLedger", label: "Master Paymet Transaction Ledger" },
+      { key: "GroupCollectionSummary", label: "Group Collection Summary" },
+      { key: "PaymentTracking", label: "Loan Payment Tracking" },
+      { key: "StaffGroupLedger", label: "StaffGroupLedger" },
+      { key: "ClientPortfolioSummary", label: "Client Portfolio Summary" },
+      { key: "StaffPerformanceReport", label: "StaffPerformanceReport" },
     ],
   },
 
-  { key: "BranchManagement", label: "Branch Management", icon: <MdLibraryBooks /> },
-  { key: "OwnerLoginHistory", label: "Attendance", icon: <MdLibraryBooks /> },
+  // { key: "BranchManagement", label: "Branch Management", icon: <MdLibraryBooks /> },
+  // { key: "OwnerLoginHistory", label: "Attendance", icon: <MdLibraryBooks /> },
 ];
 
 
@@ -96,30 +75,30 @@ const Button = ({ variant = "default", onClick, className = "", children }) => {
 };
 
 // --- Main Owner Dashboard ---
-export default function AdminDashboard() {
- 
+export default function AdminLedger() {
+
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   // Inside app/(dashboard)/admin/page.jsx
-const { user, loading } = useAuth();
+  const { user, loading } = useAuth();
 
-useEffect(() => {
-  if (!loading) {
-    const savedPath = sessionStorage.getItem("authorizedPath");
-    const currentUrl = window.location.pathname.split("/").pop();
+  useEffect(() => {
+    if (!loading) {
+      const savedPath = sessionStorage.getItem("authorizedPath");
+      const currentUrl = window.location.pathname.split("/").pop();
 
-    // If role is wrong OR they are on the wrong URL segment
-    if (user?.role !== "admin" || (currentUrl !== savedPath && savedPath !== "default")) {
-      router.replace("/");
+      // If role is wrong OR they are on the wrong URL segment
+      if (user?.role !== "admin" || (currentUrl !== savedPath && savedPath !== "default")) {
+        router.replace("/");
+      }
     }
-  }
-}, [user, loading, router]);
+  }, [user, loading, router]);
 
 
-// THE DOUBLE LOCK: 
+  // THE DOUBLE LOCK: 
   // If loading or the role doesn't match, return a blank screen or loader.
   // This prevents manual URL entry from showing the UI.
   if (loading || !user || user.role !== "admin") {
@@ -133,7 +112,7 @@ useEffect(() => {
   // ONLY now do we define variables like initials
   const ownerName = user.data.username || "Admin";
   // ... rest of your component
- 
+
 
   if (loading || !user) {
     return (
@@ -202,42 +181,37 @@ useEffect(() => {
             <p className="mt-1 text-gray-500">Select an item from the sidebar to get started.</p>
           </div>
         );
-      case "staffform":
-        return <StaffForm/>;
-      case "clientform":
-        return <ClientDetails/>;
-      case "Principal":
-        return <Principal/>;
-      case "Savings":
-        return <Savings/>;
-      case "Withdrawal":
-        return <Withdrawal/>;
-      case "Payments":
-        return <Payments/>;
-      case "AdminLoansPage":
-        return <AdminLoansPage/>;
-      case "AdminCashbookSummary":
-        return <AdminCashbookSummary/>;
-      case "AdminCashbookReportSummary":
-        return <AdminCashbookReportSummary/>;
-      case "FieldCollection":
-        return <FieldCollection/>;
-      case "GroupStaffReport":
-        return <GroupStaffReport/>;
-      case "ClientLoanOutstanding":
-        return <ClientLoanOutstanding/>;
+
+      case "DailyCashCollection":
+        return <DailyLedger />;
+      case "PeriodicCollection":
+        return <PeriodicCollection />;
+      case "Ledgersummary":
+        return <DailyLedgerSummary />;
+      case "LoanSummary":
+        return <LoanSummaryReport />;
+      case "LoanPaymentReport":
+        return <LoanPaymentReport />;
+      case "DailyPaymentReport":
+        return <DailyPaymentReport />;
+      case "MasterTransactionLedger":
+        return <MasterTransactionLedger />;
+      case "GroupCollectionSummary":
+        return <GroupCollectionSummary />;
+      case "PaymentTracking":
+        return <PaymentTracking />;
+      case "StaffGroupLedger":
+        return <StaffGroupLedger />;
+      case "ClientPortfolioSummary":
+        return <ClientPortfolioSummary />;
+      case "StaffPerformanceReport":
+        return <StaffPerformanceReport />;
+
       case "approvals":
         return <div>ApprovalsPage</div>;
       case "rates":
         return <div>RatesPage</div>
-    //   case "Loan":
-    //     return <Loan/>;
-    //   case "BranchAllocation":
-    //     return <BranchAllocation/>;
-    //   case "BranchManagement":
-    //     return <BranchManagement/>;
-    //   case "OwnerLoginHistory":
-    //     return <OwnerLoginHistory/>;
+
       default:
         return (
           <div className="p-6 bg-white rounded-xl shadow-md">
@@ -254,7 +228,7 @@ useEffect(() => {
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-white p-4 border-r shadow-lg transform transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static`}>
-        
+
         {/* Owner info */}
         <div className="flex items-center gap-3 mb-6 p-2 bg-indigo-100 rounded-lg">
           <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-xl font-bold text-white">

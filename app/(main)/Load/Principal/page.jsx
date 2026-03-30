@@ -225,23 +225,22 @@ useEffect(() => {
     if (amount <= 2500) {
         rate = 20.75;
     } 
-    else if (amount >= 3000 && amount <= 3500) {
+    else if (amount <= 3500) {
         rate = 20.37;
     } 
-    else if (amount >= 4000 && amount <= 4500) {
+    else if (amount <= 4500) {
         rate = 25;
     } 
-    else if (amount >= 5000 && amount <= 5500) {
+    else if (amount <= 5500) {
         rate = 24.2;
     } 
     else {
-        rate = 0;
+        rate = 24.2; // default for larger loans
     }
 
     setInterestRate(rate.toString());
 
-}, [principal, loanType, loanOutcome]);
-
+}, [principal]);
     // --- HANDLERS ---
 
     const clearGroupForm = () => {
