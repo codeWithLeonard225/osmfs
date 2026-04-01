@@ -18,6 +18,8 @@ export default function BulkPayments() {
     const [groupList, setGroupList] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState('');
     const [selectedGroup, setSelectedGroup] = useState('');
+    const [outcomeList, setOutcomeList] = useState([]); // To store unique outcomes
+const [selectedOutcome, setSelectedOutcome] = useState(''); // Selected filter
     const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
     const [rawLoans, setRawLoans] = useState([]); // Store the base loan docs
@@ -72,6 +74,24 @@ export default function BulkPayments() {
         fetchGroups();
     }, [selectedStaff, branchId]);
 
+
+    // Fetch Outcomes based on Group
+useEffect(() => {
+    if (!selectedGroup || !branchId) return;
+    const fetchOutcomes = async () => {
+        const q = query(
+            collection(db, "loans"), 
+            where("branchId", "==", branchId), 
+            where("staffName", "==", selectedStaff),
+            where("groupName", "==", selectedGroup)
+        );
+        const snap = await getDocs(q);
+        const uniqueOutcomes = [...new Set(snap.docs.map(doc => doc.data().loanOutcome))].filter(Boolean);
+        setOutcomeList(uniqueOutcomes);
+    };
+    fetchOutcomes();
+}, [selectedGroup, branchId, selectedStaff]);
+
     // 5. THE TRIGGER: Fetch base loans (only happens when clicking "Generate")
     const fetchCollectionSheet = async () => {
         if (!selectedStaff || !selectedGroup) return;
@@ -80,7 +100,8 @@ export default function BulkPayments() {
             collection(db, "loans"),
             where("branchId", "==", branchId),
             where("staffName", "==", selectedStaff),
-            where("groupName", "==", selectedGroup)
+            where("groupName", "==", selectedGroup),
+            where("loanOutcome", "==", selectedOutcome) // New filter
         );
         const snap = await getDocs(qLoans);
         setRawLoans(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -165,30 +186,42 @@ export default function BulkPayments() {
     return (
         <div className="p-4 bg-gray-100 min-h-screen text-xs text-black font-sans">
             <div className="max-w-[1400px] mx-auto bg-white p-6 rounded shadow">
-                {/* Filter Section */}
-                <div className="flex flex-wrap gap-4 mb-6 items-end bg-gray-50 p-4 rounded border">
-                    <div className="flex flex-col">
-                        <label className="font-bold mb-1">Staff</label>
-                        <select className="border p-2 rounded w-48 text-sm" value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)}>
-                            <option value="">Select Staff</option>
-                            {staffList.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                    </div>
-                    <div className="flex flex-col">
-                        <label className="font-bold mb-1">Group</label>
-                        <select className="border p-2 rounded w-48 text-sm" value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)}>
-                            <option value="">Select Group</option>
-                            {groupList.map(g => <option key={g} value={g}>{g}</option>)}
-                        </select>
-                    </div>
-                    <div className="flex flex-col">
-                        <label className="font-bold mb-1">Date</label>
-                        <input type="date" className="border p-2 rounded text-sm" value={date} onChange={e => setDate(e.target.value)} />
-                    </div>
-                    <button onClick={fetchCollectionSheet} className="bg-blue-600 text-white px-6 py-2 rounded font-bold h-10">
-                        {isLoading ? "Loading..." : "Generate Sheet"}
-                    </button>
-                </div>
+               {/* Filter Section */}
+<div className="flex flex-wrap gap-4 mb-6 items-end bg-gray-50 p-4 rounded border">
+    <div className="flex flex-col">
+        <label className="font-bold mb-1">Staff</label>
+        <select className="border p-2 rounded w-48 text-sm" value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)}>
+            <option value="">Select Staff</option>
+            {staffList.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+    </div>
+    
+    <div className="flex flex-col">
+        <label className="font-bold mb-1">Group</label>
+        <select className="border p-2 rounded w-48 text-sm" value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)}>
+            <option value="">Select Group</option>
+            {groupList.map(g => <option key={g} value={g}>{g}</option>)}
+        </select>
+    </div>
+
+    {/* NEW LOAN OUTCOME FILTER */}
+    <div className="flex flex-col">
+        <label className="font-bold mb-1">Loan Cycle/Outcome</label>
+        <select className="border p-2 rounded w-48 text-sm" value={selectedOutcome} onChange={e => setSelectedOutcome(e.target.value)}>
+            <option value="">Select Outcome</option>
+            {outcomeList.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+    </div>
+
+    <div className="flex flex-col">
+        <label className="font-bold mb-1">Date</label>
+        <input type="date" className="border p-2 rounded text-sm" value={date} onChange={e => setDate(e.target.value)} />
+    </div>
+    
+    <button onClick={fetchCollectionSheet} className="bg-blue-600 text-white px-6 py-2 rounded font-bold h-10">
+        {isLoading ? "Loading..." : "Generate Sheet"}
+    </button>
+</div>
 
                 {/* Table Section */}
                 <div className="overflow-x-auto">
