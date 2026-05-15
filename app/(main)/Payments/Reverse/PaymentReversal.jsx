@@ -7,10 +7,8 @@ import {
     query,
     where,
     getDocs,
-    updateDoc,
-    doc,
-    addDoc,
-    serverTimestamp
+    deleteDoc, // Changed from updateDoc/addDoc to deleteDoc
+    doc
 } from 'firebase/firestore';
 
 export default function PaymentReversal() {
@@ -52,9 +50,7 @@ export default function PaymentReversal() {
             );
 
             const snap = await getDocs(q);
-            const data = snap.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .filter(p => p.reversed !== true); // Local filtering blocks index errors
+            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
             setPayments(data);
             if (data.length === 0) alert("No active payments found for this date.");
@@ -65,44 +61,22 @@ export default function PaymentReversal() {
         }
     };
 
-    // 3. Handle Reversal Processing
+    // 3. Handle Hard Deletion Processing (No Backup History saved)
     const handleReverse = async (payment) => {
-        if (!confirm(`Are you sure you want to REVERSE the payment for ${payment.clientName}?`)) return;
+        if (!confirm(`CRITICAL WARNING:\nAre you sure you want to PERMANENTLY DELETE the payment for ${payment.clientName}?\n\nThis will completely erase it from the database with no backup history trail.`)) return;
 
         setIsDeleting(payment.id);
 
         try {
-            // 1. Store structured reversal history log
-            await addDoc(collection(db, "ACODApaymentReversals"), {
-                loanId: payment.loanId,
-                clientId: payment.clientId,
-                clientName: payment.clientName,
-                branchId: payment.branchId,
-                groupName: payment.groupName,
-                staffName: payment.staffName,
-                repaymentAmount: payment.repaymentAmount,
-                securityCollected: payment.securityCollected,
-                date: payment.date,
-                originalPaymentId: payment.id, 
-                reversedAt: serverTimestamp(),
-                reversalDate: new Date().toISOString().slice(0, 10),
-                reversedBy: branchId,
-                status: "REVERSED"
-            });
+            // PERMANENT HARD DELETE: Deletes the record directly out of the ACODApayment collection
+            await deleteDoc(doc(db, "ACODApayment", payment.id));
 
-            // 2. Mark original payment doc as reversed
-            await updateDoc(doc(db, "ACODApayment", payment.id), {
-                reversed: true,
-                reversedAt: serverTimestamp(),
-                status: "REVERSED"
-            });
-
-            // 3. Remove item dynamically from active UI list array
+            // Remove item dynamically from active UI list array
             setPayments(prev => prev.filter(p => p.id !== payment.id));
 
-            alert("Payment successfully reversed and logged. ✅");
+            alert("Payment permanently deleted from the system. ✅");
         } catch (e) {
-            alert("Error reversing payment: " + e.message);
+            alert("Error deleting payment: " + e.message);
         } finally {
             setIsDeleting(null);
         }
@@ -111,8 +85,8 @@ export default function PaymentReversal() {
     return (
         <div className="p-4 bg-red-50 min-h-screen text-xs text-black font-sans">
             <div className="max-w-[1000px] mx-auto bg-white p-6 rounded-lg shadow-lg border-t-4 border-red-600">
-                <h1 className="text-xl font-black mb-4 text-red-700">PAYMENT REVERSAL TOOL</h1>
-                <p className="mb-6 text-gray-600">Search for active payments by date to process sheet reversals.</p>
+                <h1 className="text-xl font-black mb-4 text-red-700">PERMANENT PAYMENT DELETION TOOL</h1>
+                <p className="mb-6 text-gray-600">Search for active payments by date to completely delete accidental entries from the database.</p>
 
                 {/* Filter Section */}
                 <div className="flex flex-wrap gap-4 mb-6 items-end bg-gray-100 p-4 rounded border">
@@ -178,7 +152,7 @@ export default function PaymentReversal() {
                                             disabled={isDeleting === p.id}
                                             className="bg-red-600 text-white px-4 py-1 rounded font-bold hover:bg-red-800 disabled:bg-gray-400"
                                         >
-                                            {isDeleting === p.id ? "Reversing..." : "REVERSE"}
+                                            {isDeleting === p.id ? "Deleting..." : "DELETE PERMANENTLY"}
                                         </button>
                                     </td>
                                 </tr>

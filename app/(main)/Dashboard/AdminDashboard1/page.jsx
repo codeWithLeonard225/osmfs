@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-// app/(dashboard)/owner/page.jsx
+// app/(main)/Dashboard/AdminDashboard1/page.jsx
 
 import React, { useState, useEffect } from "react";
 import { MdDashboard, MdAttachMoney, MdAssignmentTurnedIn, MdLibraryBooks, MdMenuBook, MdKeyboardArrowDown } from "react-icons/md";
@@ -13,6 +13,7 @@ import Principal from "../../Load/Principal/page";
 import Savings from "../../Load/Savings/page";
 import Withdrawal from "../../Load/Withdrawal/page";
 import Payments from "../../Payments/Disbosment/page";
+import PaymentReversal from "../../Payments/Reverse/page";
 import FieldCollection from "../../Reports/FieldCollection/page";
 import GroupStaffReport from "../../Reports/StaffLoan/page";
 import AdminCashbookSummary from "../../CashbookSummary/AdminCashbookSummary/page";
@@ -50,6 +51,7 @@ const NAV_ITEMS = [
   },
 
     { key: "Payments", label: "Payments", icon: <MdDashboard /> },
+    { key: "PaymentReversal", label: "PaymentReversal", icon: <MdDashboard /> },
 
      {
     key: "cashbook",
@@ -214,6 +216,8 @@ useEffect(() => {
         return <Withdrawal/>;
       case "Payments":
         return <Payments/>;
+      case "PaymentReversal":
+        return <PaymentReversal/>;
       case "AdminLoansPage":
         return <AdminLoansPage/>;
       case "AdminCashbookSummary":

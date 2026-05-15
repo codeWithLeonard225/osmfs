@@ -18,12 +18,12 @@ export default function BulkPayments() {
     const [groupList, setGroupList] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState('');
     const [selectedGroup, setSelectedGroup] = useState('');
-    const [outcomeList, setOutcomeList] = useState([]); 
-    const [selectedOutcome, setSelectedOutcome] = useState(''); 
+    const [outcomeList, setOutcomeList] = useState([]); // To store unique outcomes
+const [selectedOutcome, setSelectedOutcome] = useState(''); // Selected filter
     const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
-    const [rawLoans, setRawLoans] = useState([]); 
-    const [clients, setClients] = useState([]);   
+    const [rawLoans, setRawLoans] = useState([]); // Store the base loan docs
+    const [clients, setClients] = useState([]);   // Store the calculated display data
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [payments, setPayments] = useState([]);
@@ -74,24 +74,25 @@ export default function BulkPayments() {
         fetchGroups();
     }, [selectedStaff, branchId]);
 
-    // Fetch Outcomes based on Group
-    useEffect(() => {
-        if (!selectedGroup || !branchId) return;
-        const fetchOutcomes = async () => {
-            const q = query(
-                collection(db, "loans"), 
-                where("branchId", "==", branchId), 
-                where("staffName", "==", selectedStaff),
-                where("groupName", "==", selectedGroup)
-            );
-            const snap = await getDocs(q);
-            const uniqueOutcomes = [...new Set(snap.docs.map(doc => doc.data().loanOutcome))].filter(Boolean);
-            setOutcomeList(uniqueOutcomes);
-        };
-        fetchOutcomes();
-    }, [selectedGroup, branchId, selectedStaff]);
 
-    // 5. THE TRIGGER: Fetch base loans
+    // Fetch Outcomes based on Group
+useEffect(() => {
+    if (!selectedGroup || !branchId) return;
+    const fetchOutcomes = async () => {
+        const q = query(
+            collection(db, "loans"), 
+            where("branchId", "==", branchId), 
+            where("staffName", "==", selectedStaff),
+            where("groupName", "==", selectedGroup)
+        );
+        const snap = await getDocs(q);
+        const uniqueOutcomes = [...new Set(snap.docs.map(doc => doc.data().loanOutcome))].filter(Boolean);
+        setOutcomeList(uniqueOutcomes);
+    };
+    fetchOutcomes();
+}, [selectedGroup, branchId, selectedStaff]);
+
+    // 5. THE TRIGGER: Fetch base loans (only happens when clicking "Generate")
     const fetchCollectionSheet = async () => {
         if (!selectedStaff || !selectedGroup) return;
         setIsLoading(true);
@@ -100,14 +101,14 @@ export default function BulkPayments() {
             where("branchId", "==", branchId),
             where("staffName", "==", selectedStaff),
             where("groupName", "==", selectedGroup),
-            where("loanOutcome", "==", selectedOutcome)
+            where("loanOutcome", "==", selectedOutcome) // New filter
         );
         const snap = await getDocs(qLoans);
         setRawLoans(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         setIsLoading(false);
     };
 
-    // 6. THE ENGINE: Re-calculate clients fields based strictly on loanId
+    // 6. THE ENGINE: Re-calculate clients whenever payments OR rawLoans change
     useEffect(() => {
         const updated = rawLoans.map((loanData) => {
             const loanId = loanData.loanId;
@@ -128,11 +129,6 @@ export default function BulkPayments() {
             });
 
             const currentBalance = totalDebt - totalPaid;
-            const isSettled = currentBalance <= 0;
-
-            // If the standard weekly payment is more than what they actually owe, 
-            // default the input box to the smaller remaining balance value!
-            const safeDefaultPayment = weekly > currentBalance ? currentBalance : weekly;
 
             return {
                 ...loanData,
@@ -141,52 +137,23 @@ export default function BulkPayments() {
                 totalPay: totalPaid.toFixed(2),
                 balance: currentBalance.toFixed(2),
                 actualAmount: weekly.toFixed(2),
-                currentPayment: isSettled ? "0" : safeDefaultPayment.toFixed(2),
+                currentPayment: weekly.toFixed(2),
                 securityToSave: "0",
                 remWeeks: Math.max(0, totalWeeks - (totalPaid / weekly)).toFixed(1),
                 cashSecurityFromLoan: parseFloat(loanData.cashSecurity || 0),
                 prevCashSaved: totalSavedSecurity,
-                paidToday: alreadyPaidOnThisDate,
-                isLoanSettled: isSettled 
+                paidToday: alreadyPaidOnThisDate
             };
         });
         setClients(updated);
-    }, [payments, rawLoans, date]);
-
-    // Overpayment Protection Handler
-    const handlePaymentChange = (docId, maxBalance, value) => {
-        let inputNum = parseFloat(value || 0);
-        let targetBalance = parseFloat(maxBalance);
-
-        // If user tries to type an amount greater than the balance, force it back down
-        if (inputNum > targetBalance) {
-            inputNum = targetBalance;
-        }
-
-        // If negative number is typed, reset to 0
-        if (inputNum < 0) {
-            inputNum = 0;
-        }
-
-        // Update state with safe value (keep it as string if they are typing, or clean number)
-        setClients(prev => prev.map(item => {
-            if (item.id === docId) {
-                return { ...item, currentPayment: value === "" ? "" : String(inputNum) };
-            }
-            return item;
-        }));
-    };
-
-    const handleFieldChange = (docId, field, value) => {
-        setClients(prev => prev.map(item => item.id === docId ? { ...item, [field]: value } : item));
-    };
+    }, [payments, rawLoans, date]); // Auto-updates when payments arrive or date changes
 
     const saveAll = async () => {
         if (!confirm("Save all payments to ACODA records?")) return;
         setIsSaving(true);
         try {
             const promises = clients
-                .filter(c => !c.paidToday && !c.isLoanSettled) 
+                .filter(c => !c.paidToday) // Don't even try to save if already paid
                 .map(async (c) => {
                     const securityVal = parseFloat(c.securityToSave || 0);
                     const paymentVal = parseFloat(c.currentPayment || 0);
@@ -213,47 +180,48 @@ export default function BulkPayments() {
         } finally { setIsSaving(false); }
     };
 
-    const totalCollection = clients.reduce((acc, curr) => acc + (curr.paidToday || curr.isLoanSettled ? 0 : parseFloat(curr.currentPayment || 0)), 0);
-    const totalNewSecurity = clients.reduce((acc, curr) => acc + (curr.paidToday || curr.isLoanSettled ? 0 : parseFloat(curr.securityToSave || 0)), 0);
+    const totalCollection = clients.reduce((acc, curr) => acc + (curr.paidToday ? 0 : parseFloat(curr.currentPayment || 0)), 0);
+    const totalNewSecurity = clients.reduce((acc, curr) => acc + (curr.paidToday ? 0 : parseFloat(curr.securityToSave || 0)), 0);
 
     return (
         <div className="p-4 bg-gray-100 min-h-screen text-xs text-black font-sans">
             <div className="max-w-[1400px] mx-auto bg-white p-6 rounded shadow">
-                {/* Filter Section */}
-                <div className="flex flex-wrap gap-4 mb-6 items-end bg-gray-50 p-4 rounded border">
-                    <div className="flex flex-col">
-                        <label className="font-bold mb-1">Staff</label>
-                        <select className="border p-2 rounded w-48 text-sm" value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)}>
-                            <option value="">Select Staff</option>
-                            {staffList.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                    </div>
-                    
-                    <div className="flex flex-col">
-                        <label className="font-bold mb-1">Group</label>
-                        <select className="border p-2 rounded w-48 text-sm" value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)}>
-                            <option value="">Select Group</option>
-                            {groupList.map(g => <option key={g} value={g}>{g}</option>)}
-                        </select>
-                    </div>
+               {/* Filter Section */}
+<div className="flex flex-wrap gap-4 mb-6 items-end bg-gray-50 p-4 rounded border">
+    <div className="flex flex-col">
+        <label className="font-bold mb-1">Staff</label>
+        <select className="border p-2 rounded w-48 text-sm" value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)}>
+            <option value="">Select Staff</option>
+            {staffList.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+    </div>
+    
+    <div className="flex flex-col">
+        <label className="font-bold mb-1">Group</label>
+        <select className="border p-2 rounded w-48 text-sm" value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)}>
+            <option value="">Select Group</option>
+            {groupList.map(g => <option key={g} value={g}>{g}</option>)}
+        </select>
+    </div>
 
-                    <div className="flex flex-col">
-                        <label className="font-bold mb-1">Loan Cycle/Outcome</label>
-                        <select className="border p-2 rounded w-48 text-sm" value={selectedOutcome} onChange={e => setSelectedOutcome(e.target.value)}>
-                            <option value="">Select Outcome</option>
-                            {outcomeList.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                    </div>
+    {/* NEW LOAN OUTCOME FILTER */}
+    <div className="flex flex-col">
+        <label className="font-bold mb-1">Loan Cycle/Outcome</label>
+        <select className="border p-2 rounded w-48 text-sm" value={selectedOutcome} onChange={e => setSelectedOutcome(e.target.value)}>
+            <option value="">Select Outcome</option>
+            {outcomeList.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+    </div>
 
-                    <div className="flex flex-col">
-                        <label className="font-bold mb-1">Date</label>
-                        <input type="date" className="border p-2 rounded text-sm" value={date} onChange={e => setDate(e.target.value)} />
-                    </div>
-                    
-                    <button onClick={fetchCollectionSheet} className="bg-blue-600 text-white px-6 py-2 rounded font-bold h-10">
-                        {isLoading ? "Loading..." : "Generate Sheet"}
-                    </button>
-                </div>
+    <div className="flex flex-col">
+        <label className="font-bold mb-1">Date</label>
+        <input type="date" className="border p-2 rounded text-sm" value={date} onChange={e => setDate(e.target.value)} />
+    </div>
+    
+    <button onClick={fetchCollectionSheet} className="bg-blue-600 text-white px-6 py-2 rounded font-bold h-10">
+        {isLoading ? "Loading..." : "Generate Sheet"}
+    </button>
+</div>
 
                 {/* Table Section */}
                 <div className="overflow-x-auto">
@@ -273,19 +241,15 @@ export default function BulkPayments() {
                         <tbody>
                             {clients.map(c => {
                                 const currentTotalSecurity = c.cashSecurityFromLoan + c.prevCashSaved;
-                                
-                                // Check if user typed enough to clear the balance entirely
-                                const isPayingFullBalance = parseFloat(c.currentPayment || 0) === parseFloat(c.balance);
-
                                 return (
-                                    <tr key={c.id} className={`text-[11px] border-b hover:bg-gray-50 ${c.isLoanSettled ? "bg-blue-50/40 text-gray-500" : ""}`}>
+                                    <tr key={c.id} className="hover:bg-gray-50 text-[11px] border-b">
                                         <td className="border p-2">
                                             <div className="font-bold text-blue-700 text-sm">{c.fullName}</div>
                                             <div className="text-gray-500">ID: {c.clientId}</div>
                                         </td>
                                         <td className="border p-2 text-center">
                                             <div className="font-semibold">{c.loanType}</div>
-                                            <div className="text-gray-400 font-bold">#{c.loanId}</div>
+                                            <div className="text-gray-400">#{c.loanId}</div>
                                         </td>
                                         <td className="border p-2 text-center">
                                             <div className={`font-bold ${c.loanOutcome === 'Disbursed' ? 'text-green-600' : 'text-orange-600'}`}>
@@ -295,6 +259,7 @@ export default function BulkPayments() {
                                                 Rate: {c.interestRate}%
                                             </div>
                                         </td>
+                                      {/* SECURITY COLUMN - FIXED AS REQUESTED */}
                                         <td className="border p-2 text-center bg-gray-50">
                                             <div className="text-gray-500 text-[10px]">cashSecurity: {c.cashSecurityFromLoan.toFixed(2)}</div>
                                             <div className="text-gray-500 text-[10px]">cash saved: {c.prevCashSaved.toFixed(2)}</div>
@@ -303,47 +268,34 @@ export default function BulkPayments() {
                                                 Total: {currentTotalSecurity.toFixed(2)}
                                             </div>
                                         </td>
-                                        <td className="border p-2 bg-blue-50">
+                                       <td className="border p-2 bg-blue-50">
                                             <div className="flex justify-between"><span>Principal:</span><b>{c.principal}</b></div>
                                             <div className="flex justify-between text-blue-800"><span>Full Debt:</span><b>{c.fullOutstanding}</b></div>
                                             <div className="flex justify-between text-green-700"><span>Total Paid:</span><b>{c.totalPay}</b></div>
-                                            <div className={`flex justify-between border-t mt-1 pt-1 ${c.isLoanSettled ? "text-blue-700 font-black" : "text-red-700 font-bold"}`}>
-                                                <span>Balance:</span><b>{c.balance}</b>
-                                            </div>
+                                            <div className="flex justify-between text-red-700 font-bold border-t mt-1 pt-1"><span>Balance:</span><b>{c.balance}</b></div>
                                         </td>
                                         <td className="border p-2 bg-indigo-50 text-center">
                                             <div className="text-gray-500">Duration: {c.paymentWeeks} wks</div>
                                             <div className="text-indigo-700 font-black text-sm">Remaining: {c.remWeeks}</div>
                                         </td>
-                                        
-                                        {/* SAVE SECURITY INPUT COLUMN */}
                                         <td className="border p-2 bg-orange-50">
                                             <input
                                                 type="number"
-                                                disabled={c.paidToday || c.isLoanSettled}
-                                                className={`w-full p-2 border rounded font-black text-center ${c.paidToday || c.isLoanSettled ? "bg-gray-200 text-gray-400 select-none" : "border-orange-300"}`}
-                                                value={c.paidToday || c.isLoanSettled ? "0" : c.securityToSave}
-                                                onChange={e => handleFieldChange(c.id, 'securityToSave', e.target.value)}
+                                                disabled={c.paidToday}
+                                                className={`w-full p-2 border rounded font-black text-center ${c.paidToday ? "bg-gray-200" : "border-orange-300"}`}
+                                                value={c.paidToday ? "0" : c.securityToSave}
+                                                onChange={e => setClients(prev => prev.map(item => item.id === c.id ? { ...item, securityToSave: e.target.value } : item))}
                                             />
                                         </td>
-
-                                        {/* FINANCIAL COLLECTION INPUT COLUMN WITH MAXIMUM CAP VALIDATION */}
                                         <td className="border p-2 bg-green-50">
-                                            {c.isLoanSettled ? (
-                                                <div className="text-center py-2 bg-blue-600 text-white font-black rounded text-[10px] shadow-sm tracking-wider">🎉 SETTLED</div>
-                                            ) : c.paidToday ? (
+                                            {c.paidToday ? (
                                                 <div className="text-center py-2 bg-green-100 text-green-700 font-bold rounded">✅ PAID</div>
                                             ) : (
                                                 <input
                                                     type="number"
-                                                    max={c.balance} // Sets native html max
-                                                    className={`w-full p-2 border-2 rounded font-bold text-center transition-colors ${
-                                                        isPayingFullBalance 
-                                                            ? "border-blue-500 bg-blue-50 text-blue-700 font-black" // Turns blue if paying total final balance
-                                                            : "border-green-300 bg-white"
-                                                    }`}
+                                                    className="w-full p-2 border-2 border-green-300 rounded font-bold text-center"
                                                     value={c.currentPayment}
-                                                    onChange={e => handlePaymentChange(c.id, c.balance, e.target.value)}
+                                                    onChange={e => setClients(prev => prev.map(item => item.id === c.id ? { ...item, currentPayment: e.target.value } : item))}
                                                 />
                                             )}
                                         </td>
