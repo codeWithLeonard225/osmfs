@@ -10,9 +10,11 @@ import { useRouter } from "next/navigation";
 import StaffForm from "../../Forms/StaffForm/page";
 import ClientDetails from "../../Forms/ClientForm/page";
 import Principal from "../../Load/Principal/page";
+import IndividualLoanProductsPage from "../../Load/IndividualLoanProductsPage/page";
 import Savings from "../../Load/Savings/page";
 import Withdrawal from "../../Load/Withdrawal/page";
 import Payments from "../../Payments/Disbosment/page";
+import IndividualLoanPaymentsPage from "../../Payments/IndividualLoanPaymentsPage/page";
 import PaymentReversal from "../../Payments/Reverse/page";
 import FieldCollection from "../../Reports/FieldCollection/page";
 import GroupStaffReport from "../../Reports/StaffLoan/page";
@@ -20,6 +22,7 @@ import AdminCashbookSummary from "../../CashbookSummary/AdminCashbookSummary/pag
 import AdminCashbookReportSummary from "../../CashbookSummary/AdminCashbookReportSummary/page";
 import ClientLoanOutstanding from "../../Reports/ClientLoanOutstanding/page";
 import AdminLoansPage from "../../Admin/AdminLoansPage/page";
+import IndividualLoanForm from "../../Forms/IndividualLoan/page";
 
 
 
@@ -35,7 +38,7 @@ const NAV_ITEMS = [
     children: [
       { key: "staffform", label: "Register Staff" },
       { key: "clientform", label: "Register Client " },
-      { key: "staffRoles", label: "Staff Roles" },
+      { key: "individualLoan", label: "individual Loan" },
     ],
   },
 
@@ -45,12 +48,14 @@ const NAV_ITEMS = [
     icon: <MdAssignmentTurnedIn />,
     children: [
       { key: "Principal", label: "Principal" },
+      { key: "IndividualLoanProductsPage", label: "Individual Principal" },
       // { key: "Savings", label: "Savings" },
       { key: "Withdrawal", label: "Withdrawal" },
     ],
   },
 
     { key: "Payments", label: "Payments", icon: <MdDashboard /> },
+    { key: "IndividualLoanPaymentsPage", label: "Individual Loan Payment", icon: <MdDashboard /> },
     { key: "PaymentReversal", label: "PaymentReversal", icon: <MdDashboard /> },
 
      {
@@ -208,14 +213,20 @@ useEffect(() => {
         return <StaffForm/>;
       case "clientform":
         return <ClientDetails/>;
+      case "individualLoan":
+        return <IndividualLoanForm/>;
       case "Principal":
         return <Principal/>;
+      case "IndividualLoanProductsPage":
+        return <IndividualLoanProductsPage/>;
       case "Savings":
         return <Savings/>;
       case "Withdrawal":
         return <Withdrawal/>;
       case "Payments":
         return <Payments/>;
+      case "IndividualLoanPaymentsPage":
+        return <IndividualLoanPaymentsPage/>;
       case "PaymentReversal":
         return <PaymentReversal/>;
       case "AdminLoansPage":
