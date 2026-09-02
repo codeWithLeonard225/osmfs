@@ -66,7 +66,7 @@ export default function LoanPage() {
     const [cashSecurity, setCashSecurity] = useState('');
     const [principal, setPrincipal] = useState('');
     const [interestRate, setInterestRate] = useState('');
-    const [paymentWeeks, setPaymentWeeks] = useState('23');
+    const [paymentWeeks, setPaymentWeeks] = useState('24');
     const [disbursementDate, setDisbursementDate] = useState(new Date().toISOString().slice(0, 10));
     const [repaymentStartDate, setRepaymentStartDate] = useState('');
 
@@ -211,6 +211,37 @@ export default function LoanPage() {
 
 
     // 7. Dynamic Interest Calculation Based on Principal
+// useEffect(() => {
+
+//     const amount = parseFloat(principal);
+
+//     if (!amount || amount <= 0) {
+//         setInterestRate('');
+//         return;
+//     }
+
+//     let rate = 0;
+
+//     if (amount <= 2500) {
+//         rate = 20.75;
+//     } 
+//     else if (amount <= 3500) {
+//         rate = 20.37;
+//     } 
+//     else if (amount <= 4500) {
+//         rate = 25;
+//     } 
+//     else if (amount <= 5500) {
+//         rate = 24.2;
+//     } 
+//     else {
+//         rate = 24.2; // default for larger loans
+//     }
+
+//     setInterestRate(rate.toString());
+
+// }, [principal]);
+
 useEffect(() => {
 
     const amount = parseFloat(principal);
@@ -222,20 +253,11 @@ useEffect(() => {
 
     let rate = 0;
 
-    if (amount <= 2500) {
-        rate = 20.75;
-    } 
-    else if (amount <= 3500) {
-        rate = 20.37;
-    } 
-    else if (amount <= 4500) {
+    if (amount >= 1000 && amount <= 5000) {
         rate = 25;
     } 
-    else if (amount <= 5500) {
-        rate = 24.2;
-    } 
-    else {
-        rate = 24.2; // default for larger loans
+    else if (amount > 5000) {
+        rate = 30;
     }
 
     setInterestRate(rate.toString());

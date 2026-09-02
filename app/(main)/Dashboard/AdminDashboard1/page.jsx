@@ -23,6 +23,17 @@ import AdminCashbookReportSummary from "../../CashbookSummary/AdminCashbookRepor
 import ClientLoanOutstanding from "../../Reports/ClientLoanOutstanding/page";
 import AdminLoansPage from "../../Admin/AdminLoansPage/page";
 import IndividualLoanForm from "../../Forms/IndividualLoan/page";
+import Clientregistration from "../../Reports/Clientregistration/page";
+import Businessprofile from "../../Reports/Businessprofile/page";
+import Nextofkin from "../../Reports/Nextofkin/page";
+import Customerdemographics from "../../Reports/Customerdemographics/page";
+import LoanApplicationsReport from "../../Reports/LoanApplicationsReport/page";
+import LoanProductAnalysisReport from "../../Reports/LoanProductAnalysisReport/page";
+import DailyCollections from "../../Reports/DailyCollections/page";
+import OutstandingLoansReport from "../../Reports/OutstandingLoansReport/page";
+import FullyPaidLoansReport from "../../Reports/FullyPaidLoansReport/page";
+import ReportingDashboardCards from "../../Reports/ReportingDashboardCards/page";
+import LoanReportPage from "../../Reports/LoanReportPage/page";
 
 
 
@@ -78,10 +89,44 @@ const NAV_ITEMS = [
     children: [
       { key: "GroupStaffReport", label: "StaffLoan " },
       { key: "ClientLoanOutstanding", label: "Client Loan Outstanding" },
-      { key: "loanHistory", label: "Loan History" },
+      // { key: "loanHistory", label: "Loan History" },
+      { key: "LoanReportPage", label: "Loan History" },
       { key: "FieldCollection", label: "Field-Collection" },
     ],
   },
+
+  //  {
+  //   key: "clientreports",
+  //   label: "Client Reports",
+  //   icon: <MdLibraryBooks />,
+  //   children: [
+  //     { key: "Clientregistration", label: "Client Registration" },
+  //     { key: "Businessprofile", label: "Business profile" },
+  //     { key: "Nextofkin", label: "Next-of-kin" },
+  //     { key: "Customerdemographics", label: "Customer-demographics" },
+  //   ],
+  // },
+
+  // {
+  //   key: "loanreports",
+  //   label: "Loan Reports",
+  //   icon: <MdLibraryBooks />,
+  //   children: [
+  //     { key: "LoanApplicationsReport", label: "Loan Applications Report " },
+  //     { key: "LoanProductAnalysisReport", label: "Loan Product Analysis" },
+  //   ],
+  // },
+  {
+    key: "paymentreports",
+    label: "Payment Reports",
+    icon: <MdLibraryBooks />,
+    children: [
+      { key: "DailyCollections", label: "Daily Collections " },
+      { key: "OutstandingLoansReport", label: "Outstanding Loans" },
+      { key: "FullyPaidLoansReport", label: "FullyPaidLoansReport" },
+    ],
+  },
+
 
   { key: "BranchManagement", label: "Branch Management", icon: <MdLibraryBooks /> },
   { key: "OwnerLoginHistory", label: "Attendance", icon: <MdLibraryBooks /> },
@@ -241,18 +286,29 @@ useEffect(() => {
         return <GroupStaffReport/>;
       case "ClientLoanOutstanding":
         return <ClientLoanOutstanding/>;
-      case "approvals":
-        return <div>ApprovalsPage</div>;
-      case "rates":
-        return <div>RatesPage</div>
-    //   case "Loan":
-    //     return <Loan/>;
-    //   case "BranchAllocation":
-    //     return <BranchAllocation/>;
-    //   case "BranchManagement":
-    //     return <BranchManagement/>;
-    //   case "OwnerLoginHistory":
-    //     return <OwnerLoginHistory/>;
+   case "Clientregistration":
+        return <Clientregistration/>;
+      case "Businessprofile":
+        return <Businessprofile/>;
+      case "ClientLoanOutstanding":
+        return <ClientLoanOutstanding/>;
+      case "Nextofkin":
+        return <Nextofkin/>;
+      case "Customerdemographics":
+        return <Customerdemographics/>;
+      case "LoanApplicationsReport":
+        return <LoanApplicationsReport/>;
+      case "LoanProductAnalysisReport":
+        return <LoanProductAnalysisReport/>;
+      case "DailyCollections":
+        return <DailyCollections/>;
+      case "OutstandingLoansReport":
+        return <OutstandingLoansReport/>;
+ 
+      case "FullyPaidLoansReport":
+        return <FullyPaidLoansReport/>;
+      case "LoanReportPage":
+        return <LoanReportPage/>;
       default:
         return (
           <div className="p-6 bg-white rounded-xl shadow-md">
