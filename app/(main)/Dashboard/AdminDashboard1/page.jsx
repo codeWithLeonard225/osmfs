@@ -34,6 +34,7 @@ import OutstandingLoansReport from "../../Reports/OutstandingLoansReport/page";
 import FullyPaidLoansReport from "../../Reports/FullyPaidLoansReport/page";
 import ReportingDashboardCards from "../../Reports/ReportingDashboardCards/page";
 import LoanReportPage from "../../Reports/LoanReportPage/page";
+import IndividualLoanReportPage from "../../Reports/IndividualLoanReportPage/page";
 
 
 
@@ -89,8 +90,8 @@ const NAV_ITEMS = [
     children: [
       { key: "GroupStaffReport", label: "StaffLoan " },
       { key: "ClientLoanOutstanding", label: "Client Loan Outstanding" },
-      // { key: "loanHistory", label: "Loan History" },
       { key: "LoanReportPage", label: "Loan History" },
+      { key: "IndividualLoanReportPage", label: " Individual Loan History" },
       { key: "FieldCollection", label: "Field-Collection" },
     ],
   },
@@ -309,6 +310,8 @@ useEffect(() => {
         return <FullyPaidLoansReport/>;
       case "LoanReportPage":
         return <LoanReportPage/>;
+      case "IndividualLoanReportPage":
+        return <IndividualLoanReportPage/>;
       default:
         return (
           <div className="p-6 bg-white rounded-xl shadow-md">
