@@ -6,7 +6,7 @@ import { db } from "@/app/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useAuth } from "@/app/context/AuthContext";
-
+import Cookies from "js-cookie"; // ✅ Add js-cookie
 
 // 🔗 Dynamic Admin Routes
 const getAdminRoute = (type) => {
@@ -15,13 +15,14 @@ const getAdminRoute = (type) => {
       return "/Dashboard/AdminDashboard1";
     case "AdminDashboard2":
       return "/Dashboard/AdminDashboard2";
-
-
+    case "AdminLedger":
+      return "/Dashboard/AdminLedger";
+      case "AdminDashboard3":
+      return "/Dashboard/AdminDashboard3";
     default:
       return "/";
   }
 };
-
 
 export default function LoginPage() {
   const [branchId, setBranchId] = useState("");
@@ -31,7 +32,6 @@ export default function LoginPage() {
   const [showCode, setShowCode] = useState(false);
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-
 
   const router = useRouter();
 
@@ -43,7 +43,15 @@ export default function LoginPage() {
 
       if (!querySnapshot.empty) {
         const branchData = querySnapshot.docs[0].data();
+
+        // ✅ Save branch info in sessionStorage for frontend
         sessionStorage.setItem("companyShortCode", branchData.companyShortCode);
+        sessionStorage.setItem("branchId", branchData.branchId);
+
+        // ✅ Also save cookies for server-side middleware
+        Cookies.set("branchId", branchData.branchId, { path: "/" });
+        Cookies.set("companyShortCode", branchData.companyShortCode, { path: "/" });
+
         return branchData;
       }
     } catch (err) {
@@ -55,7 +63,7 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true); // 🔹 start loading
+    setLoading(true);
 
     try {
       const trimmedBranchId = branchId.trim();
@@ -78,25 +86,29 @@ export default function LoginPage() {
           const userData = snapshot.docs[0].data();
           const userRole = userData.role || "staff";
 
-          await fetchBranchDetails(userData.branchId);
+          const branchData = await fetchBranchDetails(userData.branchId);
 
-          // USE THE CONTEXT LOGIN FUNCTION
+          // ✅ Save cookies for middleware
+          Cookies.set("userRole", userRole, { path: "/" });
+          Cookies.set("authPath", userData.dashboardPath || "AdminDashboard1", { path: "/" });
+
+          // ✅ Save user data in sessionStorage for frontend
           login(userData, userRole);
 
           if (userRole === "admin") {
-            const dashboardPath = userData.dashboardPath || "AdminDashboard";
+            const dashboardPath = userData.dashboardPath || "AdminDashboard1";
             const adminRoute = getAdminRoute(dashboardPath);
-
             router.push(adminRoute);
           } else {
             router.push("/Dashboard/StaffDashboard");
           }
-          setLoading(false); // 🔹 stop loading
+
+          setLoading(false);
           return;
         }
       }
 
-      // ================= STAFF LOGIN (Alternative) =================
+      // ================= STAFF LOGIN =================
       const staffRef = collection(db, "staffMembers");
       const staffQ = query(
         staffRef,
@@ -107,12 +119,17 @@ export default function LoginPage() {
       const staffSnap = await getDocs(staffQ);
       if (!staffSnap.empty) {
         const staffData = staffSnap.docs[0].data();
-        // Check if name matches (handling case sensitivity if needed)
-        if (staffData.fullName.toLowerCase() === username.trim().toLowerCase()) {
+        if (staffData.fullName.toLowerCase() === trimmedUsername) {
           await fetchBranchDetails(staffData.branchId);
-          sessionStorage.setItem("branchId", staffData.branchId);
+
+          // ✅ Save cookies for middleware
+          Cookies.set("userRole", "staff", { path: "/" });
+          Cookies.set("authPath", "StaffDashboard", { path: "/" });
+
+          // ✅ Save sessionStorage
           sessionStorage.setItem("role", "staff");
           sessionStorage.setItem("staffData", JSON.stringify(staffData));
+
           router.push("/StaffPanel");
           setLoading(false);
           return;
@@ -130,8 +147,15 @@ export default function LoginPage() {
       const ceoSnap = await getDocs(ceoQ);
       if (!ceoSnap.empty) {
         const ceoData = ceoSnap.docs[0].data();
+
+        // ✅ Save cookies
+        Cookies.set("userRole", "owner", { path: "/" });
+        Cookies.set("authPath", "ceopage", { path: "/" });
+
+        // ✅ Save sessionStorage
         sessionStorage.setItem("role", "owner");
         sessionStorage.setItem("ceoData", JSON.stringify(ceoData));
+
         router.push("/ceopage");
         setLoading(false);
         return;
@@ -210,19 +234,8 @@ export default function LoginPage() {
                 : "bg-blue-600 hover:bg-blue-700 shadow-blue-200"
               }`}
           >
-            {loading ? (
-              <div className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                </svg>
-                Loading...
-              </div>
-            ) : (
-              "Sign In"
-            )}
+            {loading ? "Loading..." : "Sign In"}
           </button>
-
         </form>
       </div>
     </div>

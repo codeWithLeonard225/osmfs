@@ -17,6 +17,8 @@ const getAdminRoute = (type) => {
       return "/Dashboard/AdminDashboard2";
     case "AdminLedger":
       return "/Dashboard/AdminLedger";
+      case "AdminDashboard3":
+      return "/Dashboard/AdminDashboard3";
     default:
       return "/";
   }
