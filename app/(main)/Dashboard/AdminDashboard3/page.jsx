@@ -14,6 +14,7 @@ import IndividualLoanProductsPage from "../../Load/IndividualLoanProductsPage/pa
 import Savings from "../../Load/Savings/page";
 import Withdrawal from "../../Load/Withdrawal/page";
 import Payments from "../../Payments/Disbosment/page";
+import ExpensesPage from "../../Payments/ExpensesPage/page";
 import IndividualLoanPaymentsPage from "../../Payments/IndividualLoanPaymentsPage/page";
 import PaymentReversal from "../../Payments/Reverse/page";
 import FieldCollection from "../../Reports/FieldCollection/page";
@@ -82,6 +83,7 @@ const NAV_ITEMS = [
   { key: "Payments", label: "Payments", icon: <MdDashboard /> },
   { key: "IndividualLoanPaymentsPage", label: "Individual Loan Payment", icon: <MdDashboard /> },
   { key: "PaymentReversal", label: "PaymentReversal", icon: <MdDashboard /> },
+  { key: "ExpensesPage", label: "ExpensesPage", icon: <MdDashboard /> },
 
   {
     key: "cashbook",
@@ -375,6 +377,8 @@ export default function AdminDashboard() {
               return <ClientPortfolioSummary />;
             case "StaffPerformanceReport":
               return <StaffPerformanceReport />;
+            case "ExpensesPage":
+              return <ExpensesPage />;
 
 
       default:
