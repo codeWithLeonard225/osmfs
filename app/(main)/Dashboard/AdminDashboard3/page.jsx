@@ -9,7 +9,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import StaffForm from "../../Forms/StaffForm/page";
 import ClientDetails from "../../Forms/ClientForm/page";
-import Principal from "../../Load/Principal/page";
+import Principal from "../../Load/Principal/pageUTF";
 import IndividualLoanProductsPage from "../../Load/IndividualLoanProductsPage/page";
 import Savings from "../../Load/Savings/page";
 import Withdrawal from "../../Load/Withdrawal/page";
